@@ -190,8 +190,9 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     def resetTimer(self):
         print('bla')
 
-root = tk.Tk()
-app = SnakeTomato(master=root,height=200,width=200)
-app.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = SnakeTomato(master=root,height=200,width=200)
+    app.mainloop()
 
     
