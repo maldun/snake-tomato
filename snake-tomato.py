@@ -74,6 +74,8 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     
     def setGUI(self):
         
+        self.master.title("Snake Tomato")
+        
         self.setStartButton(0,1)
         self.setListBox(0,0)
         self.setPlusButton(1,1)
@@ -119,7 +121,8 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     
     def addEntry(self):
         item = self.entry.get()
-        self.listbox.insert(tk.END, item)
+        if item != "":
+            self.listbox.insert(tk.END, item)
         self.entry.delete(0,tk.END)
         
     def deleteEntry(self):
@@ -132,13 +135,17 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         with open(fname,'r') as load:
             lines = load.readlines()
             
+        self.listbox.delete(0, tk.END) # clear list
         for line in lines:
-            self.listbox.insert(tk.END,line)
+            self.listbox.insert(tk.END,line.strip())
     
     def writeListToFile(self,fname):
         
+        lines = list(self.listbox.get(0, tk.END))
+        lines = [line + '\n' for line in lines]
+        
         with open(fname,'w') as save:
-            print(self.listbox.get(0, tk.END))
+            save.writelines(lines)
     
     def loadToDoList(self):
         fname = tkFileDialog.askopenfilename(filetypes=(("Text files", "*.txt"),
