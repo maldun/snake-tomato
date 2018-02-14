@@ -24,34 +24,14 @@ if major_vers == 3:
     import tkinter as tk
     from tkinter import dialog as Dialog
     from tkinter import filedialog as tkFileDialog
-    #import tkinter.scrolledtext
-    #import tkinter.simpledialog
-    #import tkinter.tix
-    #import tkinter.constants
-    #import tkinter.dnd
-    #import tkinter.colorchooser
-    #import tkinter.commondialog
-    #import tkinter.filedialog
-    #import tkinter.font
     from tkinter import messagebox as tkMessageBox 
     from tkinter import simpledialog as tkSimpleDialog
-    #import tkinter.ttk
 elif major_vers == 2:
     import Tkinter as tk
     import Dialog 
-    #import FileDialog
-    #import ScrolledText
-    #import SimpleDialog
-    #import Tix
-    #import Tkconstants
-    #import Tkdnd
-    #import tkColorChooser
-    #import tkCommonDialog
     import tkFileDialog
-    #import tkFont
     import tkMessageBox 
     import tkSimpleDialog 
-    #import ttk
     
 class SnakeTomato(tk.Frame,object): # object derivation needed to use super in py2
     
