@@ -1,4 +1,4 @@
-# snake-tomato
+# snake_tomato
 Simple Python app for Pomodoro Method
 
 ## Requirements
