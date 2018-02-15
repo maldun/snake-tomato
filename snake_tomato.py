@@ -198,7 +198,9 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         mins = time//self.unit
         secs = time%self.unit
         
-        return '{0:2d}:{1:2d}'.format(mins,secs)
+        strings = ['{0:2d}'.format(t) if t != 0 else '00' for t in (mins,secs)]
+        
+        return ':'.join(strings)
     
     def countdown(self,remain_time):
         
