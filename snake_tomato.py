@@ -18,6 +18,7 @@
 from __future__ import print_function
 import time, sched
 import threading
+import multiprocessing
 
 # tkinter version trouble ...
 import sys
@@ -187,34 +188,36 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         time_interval = int(self.interval_field.get())
         pause_interval = int(self.pause_field.get())
         self.setIntervals(time_interval,pause_interval)
-        self.timer = threading.Timer(self.time_interval,self.takePause)
-        self.timer.start()
-        self.cdThread = threading.Thread(target=self.countdown,args=(self.time_interval,))
+        self.cdThread = threading.Thread(target=self.countdown,args=(self.time_interval,self.takePause))
+        self.cdThread.deamon=True
         self.cdThread.start()
-        #self.timer.enter(self.pause_interval,1,self.takePause,())
-        #self.timer.run()
     
     def printTime(self,time):
         mins = time//self.unit
         secs = time%self.unit
         
-        strings = ['{0:2d}'.format(t) if t != 0 else '00' for t in (mins,secs)]
+        strings = ['{0:02d}'.format(t) for t in (mins,secs)]
         
         return ':'.join(strings)
     
-    def countdown(self,remain_time):
+    def countdown(self,remain_time,finisher):
         
         for k in range(remain_time+1):
-            self.remain_time_text.set(self.printTime(remain_time-k))
+            try:
+                self.remain_time_text.set(self.printTime(remain_time-k))
+            except RuntimeError: # if main thread dead
+                sys.exit()
+                
             time.sleep(1)
+        
+        finisher()
     
     def startPauseTime(self):
         
         self.pause = True
-        self.timer = threading.Timer(self.pause_interval,self.backToWork)
-        self.cdThread = threading.Thread(target=self.countdown,args=(self.pause_interval,))
-        self.cdThread.start()
-        self.timer.run()
+        self.cdThread2 = threading.Thread(target=self.countdown,args=(self.pause_interval,self.backToWork))
+        self.cdThread2.deamon=True
+        self.cdThread2.start()
         
     
     def setLabel(self):
