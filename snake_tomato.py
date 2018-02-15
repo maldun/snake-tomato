@@ -17,6 +17,8 @@
 # Imports
 from __future__ import print_function
 import time, sched
+import threading
+
 # tkinter version trouble ...
 import sys
 major_vers = sys.version_info[0]
@@ -26,16 +28,18 @@ if major_vers == 3:
     from tkinter import filedialog as tkFileDialog
     from tkinter import messagebox as tkMessageBox 
     from tkinter import simpledialog as tkSimpleDialog
+    import _thread as thread
 elif major_vers == 2:
     import Tkinter as tk
     import Dialog 
     import tkFileDialog
     import tkMessageBox 
     import tkSimpleDialog 
+    import thread
     
 class SnakeTomato(tk.Frame,object): # object derivation needed to use super in py2
     
-    def __init__(self,time_interval = 25, pause_interval = 5, master=None,**options):
+    def __init__(self,time_interval = 25, pause_interval = 5, unit = 60,master=None,**options):
         """
         Init method. 
         Args:
@@ -45,12 +49,11 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
           options: tk options
         """
         super(SnakeTomato,self).__init__(master,options)
+        self.unit = unit
         
         self.setIntervals(time_interval,pause_interval)
         self.setGUI()
-        self.initTimer()
-        
-        #self.takePause()
+        #self.initTimer()
     
     def setGUI(self):
         
@@ -58,13 +61,15 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         self.setStartButton(0,1)
         self.setListBox(0,0)
-        self.setPlusButton(1,1)
-        self.setMinusButton(2,1)
-        self.setLoadButton(1,2)
-        self.setWriteButton(2,2)
-        self.setEntry(2,0)
+        self.setIntervalField(1,1)
+        self.setPauseField(1,2)
+        self.setRemainTimeLabel(2,1)
+        self.setPlusButton(3,1)
+        self.setMinusButton(4,1)
+        self.setLoadButton(3,2)
+        self.setWriteButton(4,2)
+        self.setEntry(5,0)
         
-    
     def setStartButton(self,row,col):
         
         self.startButton = tk.Button(self.master, text="Start", command=self.startWorkTime)
@@ -93,6 +98,30 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     def setEntry(self,row,col):
         self.entry = tk.Entry(self.master)
         self.entry.grid(row=row,column=col)
+    
+    def setIntervalField(self,row,col):
+        self.interval_field = tk.Entry(self.master,width=3)
+        self.interval_field.grid(row=row,column=col)
+        self.interval_field.delete(0,tk.END)
+        self.interval_field.insert(0,self.time_interval//self.unit)
+    
+    def setPauseField(self,row,col):
+        self.pause_field = tk.Entry(self.master,width=3)
+        self.pause_field.grid(row=row,column=col)
+        self.pause_field.delete(0,tk.END)
+        self.pause_field.insert(0,self.pause_interval//self.unit)
+    
+    def setRemainTimeLabel(self,row,col):
+        self.remain_time_text = tk.StringVar()
+        self.remain_time_text.set('00:00')
+        self.info_field = tk.Label(self.master,width=20,#font=('times', 20, 'bold'), 
+                                          #fg='green',bg='black',
+                                          text='Remaining Time: ')
+        self.remain_time_field = tk.Label(self.master,width=10,font=('digital-7', 20,), 
+                                          fg='green',bg='black',
+                                          textvariable=self.remain_time_text)
+        self.info_field.grid(row=row,column=col)
+        self.remain_time_field.grid(row=row,column=col+1)
     
     def setListBox(self,row,col):
         
@@ -150,28 +179,42 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     
     def setIntervals(self,time_interval,pause_interval):
         
-        unit = 0.1 # minutes
-        self.time_interval = time_interval*unit
-        self.pause_interval = pause_interval*unit
-    
-    def initTimer(self):
-        
-        self.timer = sched.scheduler(time.time,time.sleep)
+        self.time_interval = time_interval*self.unit
+        self.pause_interval = pause_interval*self.unit
     
 
     def startWorkTime(self):
         
         self.pause = False
-        self.timer.enter(self.pause_interval,1,self.takePause,())
-        self.timer.run()
-        #if tkMessageBox.askyesno("Print", "Print this report?"):
-        #    print('bla')
+        time_interval = int(self.interval_field.get())
+        pause_interval = int(self.pause_field.get())
+        self.setIntervals(time_interval,pause_interval)
+        self.timer = threading.Timer(self.time_interval,self.takePause)
+        self.timer.start()
+        thread.start_new_thread(self.countdown,(self.time_interval,))
         
+        #self.timer.enter(self.pause_interval,1,self.takePause,())
+        #self.timer.run()
+    
+    def printTime(self,time):
+        mins = time//self.unit
+        secs = time%self.unit
+        
+        return '{0:2d}:{1:2d}'.format(mins,secs)
+    
+    def countdown(self,remain_time):
+        
+        for k in range(remain_time+1):
+            self.remain_time_text.set(self.printTime(remain_time-k))
+            time.sleep(1)
+    
     def startPauseTime(self):
         
         self.pause = True
-        self.timer.enter(self.time_interval,1,self.backToWork,())
+        self.timer = threading.Timer(self.pause_interval,self.backToWork)
+        thread.start_new_thread(self.countdown,(self.pause_interval,))
         self.timer.run()
+        
     
     def setLabel(self):
         self.label = tk.Label(self, bd=1, relief=SUNKEN, anchor=W)
