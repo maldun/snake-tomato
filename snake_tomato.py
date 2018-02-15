@@ -28,14 +28,12 @@ if major_vers == 3:
     from tkinter import filedialog as tkFileDialog
     from tkinter import messagebox as tkMessageBox 
     from tkinter import simpledialog as tkSimpleDialog
-    import _thread as thread
 elif major_vers == 2:
     import Tkinter as tk
     import Dialog 
     import tkFileDialog
     import tkMessageBox 
     import tkSimpleDialog 
-    import thread
     
 class SnakeTomato(tk.Frame,object): # object derivation needed to use super in py2
     
@@ -191,8 +189,8 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.setIntervals(time_interval,pause_interval)
         self.timer = threading.Timer(self.time_interval,self.takePause)
         self.timer.start()
-        thread.start_new_thread(self.countdown,(self.time_interval,))
-        
+        self.cdThread = threading.Thread(target=self.countdown,args=(self.time_interval,))
+        self.cdThread.start()
         #self.timer.enter(self.pause_interval,1,self.takePause,())
         #self.timer.run()
     
@@ -212,7 +210,8 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         self.pause = True
         self.timer = threading.Timer(self.pause_interval,self.backToWork)
-        thread.start_new_thread(self.countdown,(self.pause_interval,))
+        self.cdThread = threading.Thread(target=self.countdown,args=(self.pause_interval,))
+        self.cdThread.start()
         self.timer.run()
         
     
@@ -230,8 +229,8 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         if tkMessageBox.showerror("Working", "Go Back to Work!!"):
             pass
     
-    def resetTimer(self):
-        print('bla')
+    def __del__(self):
+        self.master.quit()
 
 if __name__ == "__main__":
     root = tk.Tk()
