@@ -19,9 +19,10 @@ from __future__ import print_function
 import time, sched
 import threading
 import multiprocessing
-
-# tkinter version trouble ...
 import sys
+import os
+
+# version trouble ...
 major_vers = sys.version_info[0]
 if major_vers == 3:
     import tkinter as tk
@@ -38,7 +39,8 @@ elif major_vers == 2:
     
 class SnakeTomato(tk.Frame,object): # object derivation needed to use super in py2
     
-    def __init__(self,time_interval = 25, pause_interval = 5, unit = 60,master=None,**options):
+    def __init__(self,time_interval = 25, pause_interval = 5, unit = 60,
+                 scratch_name = 'scratch',file_format='.txt',master=None,**options):
         """
         Init method. 
         Args:
@@ -48,19 +50,37 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
           options: tk options
         """
         super(SnakeTomato,self).__init__(master,options)
-        self.unit = unit
         
+        # Make x Button use inside method
+        self.master.protocol("WM_DELETE_WINDOW", self.closeApp)
+        
+        # time information
+        self.unit = unit
         self.setIntervals(time_interval,pause_interval)
+        
         self.setGUI()
-        #self.initTimer()
+        
+        #get current scratch (if available)
+        self.scratch_name = scratch_name
+        self.file_format = file_format
+        self.getScratch()
+    
+    def getScratch(self):
+        fname = self.getScriptDir()+self.scratch_name + self.file_format
+        
+        if os.path.isfile(fname):
+            self.writeListInBox(fname)
+        else:
+            with open(fname,'w'):
+                pass
     
     def setGUI(self):
         
         self.master.title("Snake Tomato")
         
-        self.setStartButton(0,1)
-        self.setIntervalField(1,1)
-        self.setPauseField(1,2)
+        self.setStartButton(11,3)
+        self.setIntervalField(9,2)
+        self.setPauseField(9,3)
         self.setRemainTimeLabel(7,2)
         self.setPlusButton(5,2)
         self.setMinusButton(5,3)
@@ -68,6 +88,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         #self.setWriteButton(4,2)
         self.setEntry(5,0)
         self.setListBox(6,0)
+        self.setCloseButton(11,0)
         
     def setStartButton(self,row,col):
         
@@ -83,7 +104,14 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         self.writeButton = tk.Button(self.master, text="Save", command=self.saveToDoList)
         self.writeButton.grid(row=row,column=col)
-        
+    
+    def getScriptDir(self):
+        return os.path.dirname(os.path.realpath(__file__)) + os.sep
+    
+    def setCloseButton(self,row,col):
+        self.closeButton = tk.Button(self.master, text="Close", command=self.closeApp)
+        self.closeButton.grid(row=row,column=col)
+    
     def setPlusButton(self,row,col):
         
         self.plusButton = tk.Button(self.master, text="+", command=self.addEntry,width=6)
@@ -99,14 +127,18 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.entry.grid(row=row,column=col,columnspan=2, rowspan=1)
     
     def setIntervalField(self,row,col):
+        self.interval_label = tk.Label(self.master,text='Work Time: ')
         self.interval_field = tk.Entry(self.master,width=3)
-        self.interval_field.grid(row=row,column=col)
+        self.interval_label.grid(row=row,column=col)
+        self.interval_field.grid(row=row+1,column=col)
         self.interval_field.delete(0,tk.END)
         self.interval_field.insert(0,self.time_interval//self.unit)
     
     def setPauseField(self,row,col):
+        self.pause_label = tk.Label(self.master,text='Pause Time:')
         self.pause_field = tk.Entry(self.master,width=3)
-        self.pause_field.grid(row=row,column=col)
+        self.pause_label.grid(row=row,column=col)
+        self.pause_field.grid(row=row+1,column=col)
         self.pause_field.delete(0,tk.END)
         self.pause_field.insert(0,self.pause_interval//self.unit)
     
@@ -125,7 +157,14 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     def setListBox(self,row,col):
         
         self.listbox = tk.Listbox(self.master)
-        self.listbox.grid(row=row,column=col,columnspan=2, rowspan=4)
+        self.listbox.grid(row=row,column=col,columnspan=2, rowspan=5)
+    
+    def closeApp(self):
+        
+        script_dir = self.getScriptDir()
+        fname = script_dir + self.scratch_name + self.file_format
+        self.writeListToFile(fname)
+        self.master.quit()
     
     def addEntry(self):
         item = self.entry.get()
@@ -156,7 +195,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
             save.writelines(lines)
     
     def loadToDoList(self):
-        fname = tkFileDialog.askopenfilename(filetypes=(("Text files", "*.txt"),
+        fname = tkFileDialog.askopenfilename(filetypes=(("Text files", "*"+self.file_format),
                                            ("All files", "*.*") ))
         if fname:
             try:
@@ -166,7 +205,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
             return
         
     def saveToDoList(self):
-        fname = tkFileDialog.asksaveasfilename(filetypes=(("Text files", "*.txt"),
+        fname = tkFileDialog.asksaveasfilename(filetypes=(("Text files", "*"+self.file_format),
                                            ("All files", "*.*") ))
         if fname:
             try:
@@ -234,12 +273,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         if tkMessageBox.showinfo("Working", "Go Back to Work!!"):
             pass
-    
-    def __del__(self):
-        self.master.quit()
 
-
-        
 if __name__ == "__main__":
     root = tk.Tk()
     app = SnakeTomato(master=root,height=200,width=200)
