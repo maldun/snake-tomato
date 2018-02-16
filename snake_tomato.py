@@ -1,3 +1,4 @@
+#!/bin/python
 # Simple Python app for Pomodoro Method
 # Copyright (C) 2018  Stefan H. Reiterer stefan.harald.reiterer@gmail.com
 
