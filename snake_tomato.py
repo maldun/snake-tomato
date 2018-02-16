@@ -242,10 +242,13 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
                 cur_val = cur_entry[0](self.top_window.entries[section][key].get())
                 self.config_dict[section][key][1] = cur_val
                 self.__dict__.update({key:cur_val})
-                
+        
+        self.writeConfig()
+        self.readConfig()
         self.setIntervals(self.work_time_in_units,self.pause_time_in_units)
         self.getScratch(self.scratch_file)
         
+        self.fillEntries()
         self.top_window.destroy()
     
     def closeApp(self):
@@ -382,7 +385,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.defineConfigEntries()
         
         if not os.path.isfile(self.config_file):
-            self.generateConfigTemplate()
+            self.writeConfig()
             
         self.readConfig()
     
@@ -417,7 +420,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
                 self.__dict__.update(help_dict)
                 self.config_dict[section][key][1] = current_val 
             
-    def generateConfigTemplate(self):
+    def writeConfig(self):
         
         config = configparser.RawConfigParser()
         for section in self.config_dict.keys():
