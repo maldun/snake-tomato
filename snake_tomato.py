@@ -65,7 +65,11 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.file_format = file_format
         self.getScratch()
         
+        self.setStates()
+        
+    def setStates(self):
         self.start_pressed = False
+        self.reset_pressed = False
     
     def getScratch(self):
         fname = self.getScriptDir()+self.scratch_name + self.file_format
@@ -81,6 +85,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.master.title("Snake Tomato")
         
         self.setStartButton(11,0)
+        self.setResetButton(11,1)
         self.setIntervalField(9,0)
         self.setPauseField(9,1)
         self.setRemainTimeLabel(7,0)
@@ -95,6 +100,11 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     def setStartButton(self,row,col):
         
         self.startButton = tk.Button(self.master, text="Start", command=self.startWorkTime)
+        self.startButton.grid(row=row,column=col)
+        
+    def setResetButton(self,row,col):
+        
+        self.startButton = tk.Button(self.master, text="Reset", command=self.resetTimer)
         self.startButton.grid(row=row,column=col)
         
     def setLoadButton(self,row,col):
@@ -232,11 +242,10 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
             self.setIntervals(time_interval,pause_interval)
 
             self.cdThread = threading.Thread(target=self.countdown,args=(self.time_interval,))
-            self.cdThread.deamon=True
+            #self.cdThread.deamon=True
             self.cdThread.start()
-            self.master.after(self.time_interval*1000,self.takePause)
+            self.message_id = self.master.after(self.time_interval*1000,self.takePause)
         
-    
     def printTime(self,time):
         mins = time//self.unit
         secs = time%self.unit
@@ -250,10 +259,16 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         for k in range(remain_time+1):
             try:
                 self.remain_time_text.set(self.printTime(remain_time-k))
+                time.sleep(1)
+                if self.reset_pressed: 
+                    break
+                
             except RuntimeError: # if main thread dead
                 sys.exit()
                 
-            time.sleep(1)
+        if self.reset_pressed:
+            self.reset_pressed = False
+            self.remain_time_text.set(self.printTime(0))
     
     def startPauseTime(self):
         
@@ -261,7 +276,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.cdThread2 = threading.Thread(target=self.countdown,args=(self.pause_interval,))
         self.cdThread2.deamon=True
         self.cdThread2.start()
-        self.master.after(self.pause_interval*1000,self.backToWork)
+        self.message_id = self.master.after(self.pause_interval*1000,self.backToWork)
         self.start_pressed = False
         
     
@@ -278,6 +293,12 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         if tkMessageBox.showwarning("Working", "Go Back to Work!!"):
             pass
+
+    def resetTimer(self):
+        
+        self.reset_pressed = True
+        self.start_pressed = False
+        self.master.after_cancel(self.message_id)
 
 if __name__ == "__main__":
     root = tk.Tk()
