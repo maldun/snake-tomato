@@ -39,7 +39,7 @@ elif major_vers == 2:
     
 class SnakeTomato(tk.Frame,object): # object derivation needed to use super in py2
     
-    def __init__(self,time_interval = 25, pause_interval = 5, unit = 60,
+    def __init__(self,time_interval = 2, pause_interval = 1, unit = 1,
                  scratch_name = 'scratch',file_format='.txt',master=None,**options):
         """
         Init method. 
@@ -64,6 +64,8 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.scratch_name = scratch_name
         self.file_format = file_format
         self.getScratch()
+        
+        self.start_pressed = False
     
     def getScratch(self):
         fname = self.getScriptDir()+self.scratch_name + self.file_format
@@ -222,15 +224,17 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
    
     def startWorkTime(self):
         
-        self.switch_pause = False
-        time_interval = int(self.interval_field.get())
-        pause_interval = int(self.pause_field.get())
-        self.setIntervals(time_interval,pause_interval)
+        if not self.start_pressed:
+            
+            self.start_pressed = True
+            time_interval = int(self.interval_field.get())
+            pause_interval = int(self.pause_field.get())
+            self.setIntervals(time_interval,pause_interval)
 
-        self.cdThread = threading.Thread(target=self.countdown,args=(self.time_interval,))
-        self.cdThread.deamon=True
-        self.cdThread.start()
-        self.master.after(self.time_interval*1000,self.takePause)
+            self.cdThread = threading.Thread(target=self.countdown,args=(self.time_interval,))
+            self.cdThread.deamon=True
+            self.cdThread.start()
+            self.master.after(self.time_interval*1000,self.takePause)
         
     
     def printTime(self,time):
@@ -258,6 +262,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.cdThread2.deamon=True
         self.cdThread2.start()
         self.master.after(self.pause_interval*1000,self.backToWork)
+        self.start_pressed = False
         
     
     def setLabel(self):
