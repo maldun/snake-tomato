@@ -78,17 +78,17 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         self.master.title("Snake Tomato")
         
-        self.setStartButton(11,3)
-        self.setIntervalField(9,2)
-        self.setPauseField(9,3)
-        self.setRemainTimeLabel(7,2)
-        self.setPlusButton(5,2)
-        self.setMinusButton(5,3)
+        self.setStartButton(11,0)
+        self.setIntervalField(9,0)
+        self.setPauseField(9,1)
+        self.setRemainTimeLabel(7,0)
+        self.setPlusButton(5,0)
+        self.setMinusButton(5,1)
         #self.setLoadButton(3,2)
         #self.setWriteButton(4,2)
-        self.setEntry(5,0)
-        self.setListBox(6,0)
-        self.setCloseButton(11,0)
+        self.setEntry(5,3)
+        self.setListBox(6,3)
+        self.setCloseButton(11,4)
         
     def setStartButton(self,row,col):
         
