@@ -30,16 +30,26 @@ if major_vers == 3:
     from tkinter import filedialog as tkFileDialog
     from tkinter import messagebox as tkMessageBox 
     from tkinter import simpledialog as tkSimpleDialog
-elif major_vers == 2:
+    
+    import configparser
+    cp_write_mode = 'w'
+    
+if major_vers == 2:
     import Tkinter as tk
     import Dialog 
     import tkFileDialog
     import tkMessageBox 
-    import tkSimpleDialog 
+    import tkSimpleDialog
+    
+    import ConfigParser as configparser
+    cp_write_mode = 'wb'
+    
+def getScriptDir():
+        return os.path.dirname(os.path.realpath(__file__)) + os.sep
     
 class SnakeTomato(tk.Frame,object): # object derivation needed to use super in py2
     
-    def __init__(self,time_interval = 2, pause_interval = 1, unit = 1,
+    def __init__(self,config_file_name,time_interval = 2, pause_interval = 1, unit = 1,
                  scratch_name = 'scratch',file_format='.txt',master=None,**options):
         """
         Init method. 
@@ -51,28 +61,21 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         """
         super(SnakeTomato,self).__init__(master,options)
         
+        # Set config file
+        self.getConfig(config_file_name)
+        
         # Make x Button use inside method
         self.master.protocol("WM_DELETE_WINDOW", self.closeApp)
         
-        # time information
-        self.unit = unit
-        self.setIntervals(time_interval,pause_interval)
-        
         self.setGUI()
-        
-        #get current scratch (if available)
-        self.scratch_name = scratch_name
-        self.file_format = file_format
-        self.getScratch()
-        
+        self.getScratch(self.scratch_file)
         self.setStates()
         
     def setStates(self):
         self.start_pressed = False
         self.reset_pressed = False
     
-    def getScratch(self):
-        fname = self.getScriptDir()+self.scratch_name + self.file_format
+    def getScratch(self,fname):
         
         if os.path.isfile(fname):
             self.writeListInBox(fname)
@@ -101,10 +104,11 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
     def setupMenu(self):
         menubar = tk.Menu(self.master)
-        menubar.add_command(label="Preferences", command=self.setPreferences)
         
         mainmenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Menu", menu=mainmenu)
+        
+        mainmenu.add_command(label="Preferences", command=self.setPreferences)
         mainmenu.add_command(label="Quit", command=self.closeApp)
         
         self.master.config(menu=menubar)
@@ -128,9 +132,6 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         self.writeButton = tk.Button(self.master, text="Save", command=self.saveToDoList)
         self.writeButton.grid(row=row,column=col)
-    
-    def getScriptDir(self):
-        return os.path.dirname(os.path.realpath(__file__)) + os.sep
     
     def setCloseButton(self,row,col):
         self.closeButton = tk.Button(self.master, text="Close", command=self.closeApp)
@@ -188,9 +189,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     
     def closeApp(self):
         
-        script_dir = self.getScriptDir()
-        fname = script_dir + self.scratch_name + self.file_format
-        self.writeListToFile(fname)
+        self.writeListToFile(self.scratch_file)
         self.master.quit()
     
     def addEntry(self):
@@ -313,11 +312,56 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         self.reset_pressed = True
         self.start_pressed = False
+        
         self.master.after_cancel(self.message_id)
+    
+    def getConfig(self,config_file):
+        
+        self.config_file = config_file
+        
+        if not os.path.isfile(self.config_file):
+            self.generateConfigTemplate()
+            
+        self.readConfig()
+            
+    def readConfig(self):
+        
+        config = configparser.RawConfigParser()
+        config.read(self.config_file)
+        
+        self.file_format = config.get('scratch','dtype')
+        self.scratch_file = config.get('scratch','file')
+        
+        self.unit = int(config.get('defaults','time_unit_in_sec'))
+        time_interval = int(config.get('defaults','work_time'))
+        pause_interval = int(config.get('defaults','pause_time'))
+        self.setIntervals(time_interval,pause_interval)
+    
+    def generateConfigTemplate(self):
+        
+        config = configparser.RawConfigParser()
+        config.add_section('scratch')
+        dtype = 'txt'
+        config.set('scratch','dtype',dtype)
+        config.set('scratch','file',getScriptDir() + 'scratch' + '.' + dtype)
+        
+        config.add_section('defaults')
+        config.set('defaults','work_time',25)
+        config.set('defaults','pause_time',5)
+        config.set('defaults','time_unit_in_sec',60)
+        
+        with open(self.config_file, cp_write_mode) as configfile:
+            config.write(configfile)
+        
+
+def runApp():
+    config_file_name = getScriptDir() + 'snake_tomato.cfg'
+    root = tk.Tk()
+    app = SnakeTomato(config_file_name,master=root,height=200,width=200)
+    app.mainloop()
+
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = SnakeTomato(master=root,height=200,width=200)
-    app.mainloop()
+    runApp()
 
     
