@@ -61,6 +61,8 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         """
         super(SnakeTomato,self).__init__(master,options)
         
+        # set default states
+        self.setStates()
         # Set config file
         self.getConfig(config_file_name)
         self.setIntervals(self.work_time_in_units,self.pause_time_in_units)
@@ -70,7 +72,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         self.setGUI()
         self.getScratch(self.scratch_file)
-        self.setStates()
+        
         
     def setStates(self):
         self.start_pressed = False
@@ -101,6 +103,18 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.setEntry(5,3)
         self.setListBox(6,3)
         self.setCloseButton(11,4)
+        self.fillEntries()
+    
+    def fillEntries(self):
+        
+        if self.start_pressed:
+            self.resetTimer()
+        
+        self.interval_field.delete(0,tk.END)
+        self.interval_field.insert(0,self.time_interval//self.unit)
+        self.pause_field.delete(0,tk.END)
+        self.pause_field.insert(0,self.pause_interval//self.unit)
+        
         
         
     def setupMenu(self):
@@ -157,16 +171,12 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.interval_field = tk.Entry(self.master,width=3)
         self.interval_label.grid(row=row,column=col)
         self.interval_field.grid(row=row+1,column=col)
-        self.interval_field.delete(0,tk.END)
-        self.interval_field.insert(0,self.time_interval//self.unit)
-    
+        
     def setPauseField(self,row,col):
         self.pause_label = tk.Label(self.master,text='Pause Time:')
         self.pause_field = tk.Entry(self.master,width=3)
         self.pause_label.grid(row=row,column=col)
         self.pause_field.grid(row=row+1,column=col)
-        self.pause_field.delete(0,tk.END)
-        self.pause_field.insert(0,self.pause_interval//self.unit)
     
     def setRemainTimeLabel(self,row,col):
         self.remain_time_text = tk.StringVar()
