@@ -59,15 +59,15 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.master.title("Snake Tomato")
         
         self.setStartButton(0,1)
-        self.setListBox(0,0)
         self.setIntervalField(1,1)
         self.setPauseField(1,2)
-        self.setRemainTimeLabel(2,1)
-        self.setPlusButton(3,1)
-        self.setMinusButton(4,1)
-        self.setLoadButton(3,2)
-        self.setWriteButton(4,2)
+        self.setRemainTimeLabel(7,2)
+        self.setPlusButton(5,2)
+        self.setMinusButton(5,3)
+        #self.setLoadButton(3,2)
+        #self.setWriteButton(4,2)
         self.setEntry(5,0)
+        self.setListBox(6,0)
         
     def setStartButton(self,row,col):
         
@@ -86,17 +86,17 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
     def setPlusButton(self,row,col):
         
-        self.plusButton = tk.Button(self.master, text="+", command=self.addEntry)
+        self.plusButton = tk.Button(self.master, text="+", command=self.addEntry,width=6)
         self.plusButton.grid(row=row,column=col)
         
     def setMinusButton(self,row,col):
         
-        self.minusButton = tk.Button(self.master, text="-", command=self.deleteEntry)
+        self.minusButton = tk.Button(self.master, text="-", command=self.deleteEntry,width=6)
         self.minusButton.grid(row=row,column=col)
     
     def setEntry(self,row,col):
         self.entry = tk.Entry(self.master)
-        self.entry.grid(row=row,column=col)
+        self.entry.grid(row=row,column=col,columnspan=2, rowspan=1)
     
     def setIntervalField(self,row,col):
         self.interval_field = tk.Entry(self.master,width=3)
@@ -119,13 +119,13 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.remain_time_field = tk.Label(self.master,width=10,font=('digital-7', 20,), 
                                           fg='green',bg='black',
                                           textvariable=self.remain_time_text)
-        self.info_field.grid(row=row,column=col)
-        self.remain_time_field.grid(row=row,column=col+1)
+        self.info_field.grid(row=row,column=col,columnspan=3)
+        self.remain_time_field.grid(row=row+1,column=col,columnspan=3)
     
     def setListBox(self,row,col):
         
         self.listbox = tk.Listbox(self.master)
-        self.listbox.grid(row=row,column=col)
+        self.listbox.grid(row=row,column=col,columnspan=2, rowspan=4)
     
     def addEntry(self):
         item = self.entry.get()
