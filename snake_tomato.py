@@ -180,17 +180,19 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         self.time_interval = time_interval*self.unit
         self.pause_interval = pause_interval*self.unit
-    
-
+   
     def startWorkTime(self):
         
-        self.pause = False
+        self.switch_pause = False
         time_interval = int(self.interval_field.get())
         pause_interval = int(self.pause_field.get())
         self.setIntervals(time_interval,pause_interval)
-        self.cdThread = threading.Thread(target=self.countdown,args=(self.time_interval,self.takePause))
+
+        self.cdThread = threading.Thread(target=self.countdown,args=(self.time_interval,))
         self.cdThread.deamon=True
         self.cdThread.start()
+        self.master.after(self.time_interval*1000,self.takePause)
+        
     
     def printTime(self,time):
         mins = time//self.unit
@@ -200,7 +202,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         return ':'.join(strings)
     
-    def countdown(self,remain_time,finisher):
+    def countdown(self,remain_time):
         
         for k in range(remain_time+1):
             try:
@@ -209,15 +211,14 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
                 sys.exit()
                 
             time.sleep(1)
-        
-        finisher()
     
     def startPauseTime(self):
         
-        self.pause = True
-        self.cdThread2 = threading.Thread(target=self.countdown,args=(self.pause_interval,self.backToWork))
+        self.switch_pause = False
+        self.cdThread2 = threading.Thread(target=self.countdown,args=(self.pause_interval,))
         self.cdThread2.deamon=True
         self.cdThread2.start()
+        self.master.after(self.pause_interval*1000,self.backToWork)
         
     
     def setLabel(self):
@@ -226,17 +227,19 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
     def takePause(self):
         self.pause = True
-        if tkMessageBox.showerror("Pause", "Take a Pause!"):
+        if tkMessageBox.showinfo("Pause", "Take a Pause!"):
             self.startPauseTime()
             
     def backToWork(self):
         
-        if tkMessageBox.showerror("Working", "Go Back to Work!!"):
+        if tkMessageBox.showinfo("Working", "Go Back to Work!!"):
             pass
     
     def __del__(self):
         self.master.quit()
 
+
+        
 if __name__ == "__main__":
     root = tk.Tk()
     app = SnakeTomato(master=root,height=200,width=200)
