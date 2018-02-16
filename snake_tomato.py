@@ -80,15 +80,10 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
             with open(fname,'w'):
                 pass
     
-    def setupMenu(self):
-        menubar = tk.Menu(self.master)
-        #menubar.add_command(label="Preferences", command=self.setPreferences)
-        menubar.add_command(label="Quit", command=self.closeApp)
-    
     def setGUI(self):
         
         self.master.title("Snake Tomato")
-        self.master.setupMenu()
+        self.setupMenu()
         
         self.setStartButton(11,0)
         self.setResetButton(11,1)
@@ -102,6 +97,17 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.setEntry(5,3)
         self.setListBox(6,3)
         self.setCloseButton(11,4)
+        
+        
+    def setupMenu(self):
+        menubar = tk.Menu(self.master)
+        menubar.add_command(label="Preferences", command=self.setPreferences)
+        
+        mainmenu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Menu", menu=mainmenu)
+        mainmenu.add_command(label="Quit", command=self.closeApp)
+        
+        self.master.config(menu=menubar)
         
     def setStartButton(self,row,col):
         
@@ -176,6 +182,9 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         self.listbox = tk.Listbox(self.master)
         self.listbox.grid(row=row,column=col,columnspan=2, rowspan=5)
+    
+    def setPreferences(self):
+        pass
     
     def closeApp(self):
         
