@@ -63,6 +63,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
         # Set config file
         self.getConfig(config_file_name)
+        self.setIntervals(self.work_time_in_units,self.pause_time_in_units)
         
         # Make x Button use inside method
         self.master.protocol("WM_DELETE_WINDOW", self.closeApp)
@@ -108,7 +109,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         mainmenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Menu", menu=mainmenu)
         
-        mainmenu.add_command(label="Preferences", command=self.setPreferences)
+        mainmenu.add_command(label="Preferences", command=self.openPreferencesWindow)
         mainmenu.add_command(label="Quit", command=self.closeApp)
         
         self.master.config(menu=menubar)
@@ -184,8 +185,58 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.listbox = tk.Listbox(self.master)
         self.listbox.grid(row=row,column=col,columnspan=2, rowspan=5)
     
+    def openPreferencesWindow(self):
+        self.top_window = tk.Toplevel(self.master)
+        self.top_window.wm_title('Preferences')
+        
+        row = 0
+        self.top_window.section_labels = dict([])
+        self.top_window.labels = dict([])
+        self.top_window.entries = dict([])
+        
+        for section in self.config_dict.keys():
+            sec_label = tk.Label(self.top_window,text=section.replace('_',' '),font=('arial', 20,))
+            sec_label.grid(row=row,column=1)
+            row += 1
+            self.top_window.section_labels.update({section:sec_label})
+            
+            sub_dict = self.config_dict[section]
+            label_dict = dict([])
+            entry_dict = dict([])
+            for key in sub_dict.keys():
+                label = tk.Label(self.top_window,text=key.replace('_',' '))
+                label.grid(row=row,column=0)
+                entry = tk.Entry(self.top_window,width = 50)
+                entry.grid(row=row,column=1,columnspan=2)
+                entry.insert(0,sub_dict[key][1])
+                
+                label_dict.update({key:label})
+                entry_dict.update({key:entry})
+                
+                row += 1
+                
+            self.top_window.labels.update({section:label_dict})    
+            self.top_window.entries.update({section:entry_dict})
+                
+        self.top_window.set_button = tk.Button(self.top_window,text='Set Config',command=self.setPreferences)
+        self.top_window.set_button.grid(row=row,column=4)
+        
+                
+    
     def setPreferences(self):
-        pass
+        
+        for section in self.config_dict.keys():
+            sub_dict = self.config_dict[section]
+            for key in sub_dict.keys():
+                cur_entry = self.config_dict[section][key]
+                cur_val = cur_entry[0](self.top_window.entries[section][key].get())
+                self.config_dict[section][key][1] = cur_val
+                self.__dict__.update({key:cur_val})
+                
+        self.setIntervals(self.work_time_in_units,self.pause_time_in_units)
+        self.getScratch(self.scratch_file)
+        
+        self.top_window.destroy()
     
     def closeApp(self):
         
@@ -318,37 +369,53 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     def getConfig(self,config_file):
         
         self.config_file = config_file
+        self.defineConfigEntries()
         
         if not os.path.isfile(self.config_file):
             self.generateConfigTemplate()
             
         self.readConfig()
-            
+    
+    def defineConfigEntries(self):
+        
+        # config dict contains sections and entries with dtypes 
+        # and a predefined default value
+        ftype = 'txt'
+        fname = getScriptDir() + 'scratch' + '.' + ftype
+        
+        default_unit = 60
+        default_work_time = 25
+        default_pause_time = 5
+        
+        self.config_dict = {'scratch':{'file_format':[str,ftype],'scratch_file':[str,fname]},
+                            'defaults':{'unit':[int,default_unit],
+                                        'work_time_in_units':[int,default_work_time],
+                                         'pause_time_in_units':[int,default_pause_time],
+                                         }
+                            }
+    
     def readConfig(self):
         
         config = configparser.RawConfigParser()
         config.read(self.config_file)
         
-        self.file_format = config.get('scratch','dtype')
-        self.scratch_file = config.get('scratch','file')
-        
-        self.unit = int(config.get('defaults','time_unit_in_sec'))
-        time_interval = int(config.get('defaults','work_time'))
-        pause_interval = int(config.get('defaults','pause_time'))
-        self.setIntervals(time_interval,pause_interval)
-    
+        for section in self.config_dict.keys():
+            sub_dict = self.config_dict[section]
+            for key in sub_dict.keys():
+                current_val = sub_dict[key][0](config.get(section,key))
+                help_dict = {key:current_val}
+                self.__dict__.update(help_dict)
+                self.config_dict[section][key][1] = current_val 
+            
     def generateConfigTemplate(self):
         
         config = configparser.RawConfigParser()
-        config.add_section('scratch')
-        dtype = 'txt'
-        config.set('scratch','dtype',dtype)
-        config.set('scratch','file',getScriptDir() + 'scratch' + '.' + dtype)
-        
-        config.add_section('defaults')
-        config.set('defaults','work_time',25)
-        config.set('defaults','pause_time',5)
-        config.set('defaults','time_unit_in_sec',60)
+        for section in self.config_dict.keys():
+            config.add_section(section)
+
+            sub_dict = self.config_dict[section]
+            for key in sub_dict.keys():
+                config.set(section,key,sub_dict[key][-1])
         
         with open(self.config_file, cp_write_mode) as configfile:
             config.write(configfile)
