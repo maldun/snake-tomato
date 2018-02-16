@@ -271,12 +271,12 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
     def takePause(self):
         self.pause = True
-        if tkMessageBox.showinfo("Pause", "Take a Pause!"):
+        if tkMessageBox.showwarning("Pause", "Take a Pause!"):
             self.startPauseTime()
             
     def backToWork(self):
         
-        if tkMessageBox.showinfo("Working", "Go Back to Work!!"):
+        if tkMessageBox.showwarning("Working", "Go Back to Work!!"):
             pass
 
 if __name__ == "__main__":
