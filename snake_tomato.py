@@ -34,7 +34,6 @@ if major_vers == 3:
     
     import configparser
     cp_write_mode = 'w'
-    from io import open
     
 if major_vers == 2:
     import Tkinter as tk
@@ -45,7 +44,6 @@ if major_vers == 2:
     
     import ConfigParser as configparser
     cp_write_mode = 'wb'
-    from codecs import open
     
 def getScriptDir():
         return os.path.dirname(os.path.realpath(__file__)) + os.sep
@@ -86,7 +84,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         if os.path.isfile(fname):
             self.writeListInBox(fname)
         else:
-            with open(fname,'w',encoding='utf8'):
+            with open(fname,'w'):
                 pass
     
     def setGUI(self):
@@ -194,7 +192,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.remain_time_field.grid(row=row+1,column=col,columnspan=3)
     
     def setListBox(self,row,col):
-        
+            
         self.listbox = tk.Listbox(self.master,height=self.nr_of_entries)
         self.listbox.grid(row=row,column=col,columnspan=2, rowspan=5)
     
@@ -236,6 +234,9 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         
     def setPreferences(self):
         
+        # has to be stored if entries do not work out
+        nr_of_entries_buffer = self.nr_of_entries
+        
         for section in self.config_dict.keys():
             sub_dict = self.config_dict[section]
             for key in sub_dict.keys():
@@ -249,8 +250,15 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.setIntervals(self.work_time_in_units,self.pause_time_in_units)
         self.getScratch(self.scratch_file)
         
+        # Set listbox
+        if self.tooMuchEntries(self.nr_of_entries):
+            self.nr_of_entries = nr_of_entries_buffer
+            self.config_dict["defaults"]["nr_of_entries"] = self.nr_of_entries
+            tkMessageBox.showerror("Too Much Entries!", "Either delete items or set the nr of entries setting higher!\nCurrent setting is set to old value!")
+            
         self.writeListToFile(self.scratch_file) # has to be placed here ...
         self.refreshListBox()
+        
         self.top_window.destroy()
     
     def refreshListBox(self):
@@ -258,23 +266,23 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.listbox.destroy()
         self.setListBox(*self.list_box_pos)
         self.writeListInBox(self.scratch_file)
-    
+        
     def closeApp(self):
         
         self.writeListToFile(self.scratch_file)
         self.master.quit()
     
-    def tooMuchEntries(self):
+    def tooMuchEntries(self,nr_of_entries):
         
          lines = list(self.listbox.get(0, tk.END))
-         if len(lines) >= self.nr_of_entries:
+         if len(lines) >= nr_of_entries:
              return True
          
          return False
     
     def addEntry(self):
         
-        if self.tooMuchEntries():
+        if self.tooMuchEntries(self.nr_of_entries):
             tkMessageBox.showerror("Too Much Entries!", "Either delete items or set the nr of entries setting higher!")
         else:
             item = self.entry.get()
@@ -292,9 +300,16 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     
     def writeListInBox(self,fname):
         
-        with open(fname,'r',encoding='utf8') as load:
+        with open(fname,'r') as load:
             lines = load.readlines()
-            
+        
+        #if len(lines) > self.nr_of_entries:
+            #self.nr_of_entries = len(lines)
+            #self.config_dict["defaults"]["nr_of_entries"] = self.nr_of_entries
+            #tkMessageBox.showerror("Too Much Entries!", "Nr of entries is set higher now!")
+            #self.listbox.destroy()
+            #self.setListBox(*self.list_box_pos)
+        
         self.listbox.delete(0, tk.END) # clear list
         for line in lines:
             self.listbox.insert(tk.END,line.strip())
@@ -304,7 +319,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         lines = list(self.listbox.get(0, tk.END))
         lines = [line + '\n' for line in lines]
         
-        with open(fname,'w',encoding='utf8') as save:
+        with open(fname,'w') as save:
             save.writelines(lines)
     
     def loadToDoList(self):
@@ -455,7 +470,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
             for key in sub_dict.keys():
                 config.set(section,key,sub_dict[key][-1])
         
-        with open(self.config_file, cp_write_mode,encoding='utf8') as configfile:
+        with open(self.config_file, cp_write_mode) as configfile:
             config.write(configfile)
         
 
