@@ -34,6 +34,7 @@ if major_vers == 3:
     
     import configparser
     cp_write_mode = 'w'
+    from io import open
     
 if major_vers == 2:
     import Tkinter as tk
@@ -44,6 +45,7 @@ if major_vers == 2:
     
     import ConfigParser as configparser
     cp_write_mode = 'wb'
+    from codecs import open
     
 def getScriptDir():
         return os.path.dirname(os.path.realpath(__file__)) + os.sep
@@ -84,7 +86,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         if os.path.isfile(fname):
             self.writeListInBox(fname)
         else:
-            with open(fname,'w'):
+            with open(fname,'w',encoding='utf8'):
                 pass
     
     def setGUI(self):
@@ -303,7 +305,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     
     def writeListInBox(self,fname):
         
-        with open(fname,'r') as load:
+        with open(fname,'r',encoding='utf8') as load:
             lines = load.readlines()
         
         if len(lines) > self.nr_of_entries:
@@ -322,7 +324,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         lines = list(self.listbox.get(0, tk.END))
         lines = [line + '\n' for line in lines]
         
-        with open(fname,'w') as save:
+        with open(fname,'w',encoding='utf8') as save:
             save.writelines(lines)
     
     def loadToDoList(self):
@@ -473,7 +475,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
             for key in sub_dict.keys():
                 config.set(section,key,sub_dict[key][-1])
         
-        with open(self.config_file, cp_write_mode) as configfile:
+        with open(self.config_file, cp_write_mode,encoding='utf8') as configfile:
             config.write(configfile)
         
 
