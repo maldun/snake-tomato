@@ -232,6 +232,8 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.top_window.set_button = tk.Button(self.top_window,text='Set Config',command=self.setPreferences)
         self.top_window.set_button.grid(row=row,column=4)
         
+        self.writeListToFile(self.scratch_file) # has to be placed here ...
+        
     def setPreferences(self):
         
         # has to be stored if entries do not work out
@@ -256,7 +258,6 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
             self.config_dict["defaults"]["nr_of_entries"] = self.nr_of_entries
             tkMessageBox.showerror("Too Much Entries!", "Either delete items or set the nr of entries setting higher!\nCurrent setting is set to old value!")
             
-        self.writeListToFile(self.scratch_file) # has to be placed here ...
         self.refreshListBox()
         
         self.top_window.destroy()
@@ -303,12 +304,12 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         with open(fname,'r') as load:
             lines = load.readlines()
         
-        #if len(lines) > self.nr_of_entries:
-            #self.nr_of_entries = len(lines)
-            #self.config_dict["defaults"]["nr_of_entries"] = self.nr_of_entries
-            #tkMessageBox.showerror("Too Much Entries!", "Nr of entries is set higher now!")
-            #self.listbox.destroy()
-            #self.setListBox(*self.list_box_pos)
+        if len(lines) > self.nr_of_entries:
+            self.nr_of_entries = len(lines)
+            self.config_dict["defaults"]["nr_of_entries"] = self.nr_of_entries
+            tkMessageBox.showerror("Too Much Entries!", "Nr of entries is set higher now!")
+            self.listbox.destroy()
+            self.setListBox(*self.list_box_pos)
         
         self.listbox.delete(0, tk.END) # clear list
         for line in lines:
