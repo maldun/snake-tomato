@@ -193,7 +193,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
     
     def setListBox(self,row,col):
         
-        self.listbox = tk.Listbox(self.master)
+        self.listbox = tk.Listbox(self.master,height=self.nr_of_entries)
         self.listbox.grid(row=row,column=col,columnspan=2, rowspan=5)
     
     def openPreferencesWindow(self):
@@ -249,7 +249,8 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.setIntervals(self.work_time_in_units,self.pause_time_in_units)
         self.getScratch(self.scratch_file)
         
-        self.fillEntries()
+        #self.fillEntries()
+        self.setGUI()
         self.top_window.destroy()
     
     def closeApp(self):
@@ -400,11 +401,13 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         default_unit = 60
         default_work_time = 25
         default_pause_time = 5
+        nr_of_entries = 20
         
         self.config_dict = {'scratch':{'file_format':[str,ftype],'scratch_file':[str,fname]},
                             'defaults':{'unit':[int,default_unit],
                                         'work_time_in_units':[int,default_work_time],
                                          'pause_time_in_units':[int,default_pause_time],
+                                         'nr_of_entries':[int,nr_of_entries],
                                          }
                             }
     
