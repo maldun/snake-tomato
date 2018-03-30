@@ -34,6 +34,7 @@ if major_vers == 3:
     
     import configparser
     cp_write_mode = 'w'
+    from io import open
     
 if major_vers == 2:
     import Tkinter as tk
@@ -44,6 +45,7 @@ if major_vers == 2:
     
     import ConfigParser as configparser
     cp_write_mode = 'wb'
+    from codecs import open
     
 def getScriptDir():
         return os.path.dirname(os.path.realpath(__file__)) + os.sep
@@ -84,13 +86,15 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         if os.path.isfile(fname):
             self.writeListInBox(fname)
         else:
-            with open(fname,'w'):
+            with open(fname,'w',encoding='utf8'):
                 pass
     
     def setGUI(self):
         
         self.master.title("Snake Tomato")
         self.setupMenu()
+        
+        self.list_box_pos = (6,3)
         
         self.setStartButton(11,0)
         self.setResetButton(11,1)
@@ -102,7 +106,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         #self.setLoadButton(3,2)
         #self.setWriteButton(4,2)
         self.setEntry(5,3)
-        self.setListBox(6,3)
+        self.setListBox(*self.list_box_pos)
         self.setCloseButton(11,4)
         self.fillEntries()
     
@@ -115,8 +119,6 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.interval_field.insert(0,self.time_interval//self.unit)
         self.pause_field.delete(0,tk.END)
         self.pause_field.insert(0,self.pause_interval//self.unit)
-        
-        
         
     def setupMenu(self):
         menubar = tk.Menu(self.master)
@@ -232,8 +234,6 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.top_window.set_button = tk.Button(self.top_window,text='Set Config',command=self.setPreferences)
         self.top_window.set_button.grid(row=row,column=4)
         
-                
-    
     def setPreferences(self):
         
         for section in self.config_dict.keys():
@@ -249,29 +249,50 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.setIntervals(self.work_time_in_units,self.pause_time_in_units)
         self.getScratch(self.scratch_file)
         
-        #self.fillEntries()
-        self.setGUI()
+        self.writeListToFile(self.scratch_file) # has to be placed here ...
+        self.refreshListBox()
         self.top_window.destroy()
+    
+    def refreshListBox(self):
+        
+        self.listbox.destroy()
+        self.setListBox(*self.list_box_pos)
+        self.writeListInBox(self.scratch_file)
     
     def closeApp(self):
         
         self.writeListToFile(self.scratch_file)
         self.master.quit()
     
+    def tooMuchEntries(self):
+        
+         lines = list(self.listbox.get(0, tk.END))
+         if len(lines) >= self.nr_of_entries:
+             return True
+         
+         return False
+    
     def addEntry(self):
-        item = self.entry.get()
-        if item != "":
-            self.listbox.insert(tk.END, item)
-        self.entry.delete(0,tk.END)
+        
+        if self.tooMuchEntries():
+            tkMessageBox.showerror("Too Much Entries!", "Either delete items or set the nr of entries setting higher!")
+        else:
+            item = self.entry.get()
+            if item != "":
+                self.listbox.insert(tk.END, item)
+                self.listbox.update()
+                
+            self.entry.delete(0,tk.END)
         
     def deleteEntry(self):
+        
         selection = self.listbox.curselection()
         if selection:
             self.listbox.delete(selection[0])
     
     def writeListInBox(self,fname):
         
-        with open(fname,'r') as load:
+        with open(fname,'r',encoding='utf8') as load:
             lines = load.readlines()
             
         self.listbox.delete(0, tk.END) # clear list
@@ -283,7 +304,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         lines = list(self.listbox.get(0, tk.END))
         lines = [line + '\n' for line in lines]
         
-        with open(fname,'w') as save:
+        with open(fname,'w',encoding='utf8') as save:
             save.writelines(lines)
     
     def loadToDoList(self):
@@ -305,7 +326,6 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
             except:                     # <- naked except is a bad idea
                 tkMessageBox.showerror("Open Source File", "Failed to read file\n'%s'" % fname)
             return
-    
     
     def setIntervals(self,time_interval,pause_interval):
         
@@ -359,12 +379,13 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.message_id = self.master.after(self.pause_interval*1000,self.backToWork)
         self.start_pressed = False
         
-    
     def setLabel(self):
+        
         self.label = tk.Label(self, bd=1, relief=SUNKEN, anchor=W)
         self.label.pack(fill=X)
         
     def takePause(self):
+        
         self.pause = True
         if tkMessageBox.showwarning("Pause", "Take a Pause!"):
             self.startPauseTime()
@@ -434,7 +455,7 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
             for key in sub_dict.keys():
                 config.set(section,key,sub_dict[key][-1])
         
-        with open(self.config_file, cp_write_mode) as configfile:
+        with open(self.config_file, cp_write_mode,encoding='utf8') as configfile:
             config.write(configfile)
         
 
