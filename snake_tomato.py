@@ -232,7 +232,9 @@ class SnakeTomato(tk.Frame,object): # object derivation needed to use super in p
         self.top_window.set_button = tk.Button(self.top_window,text='Set Config',command=self.setPreferences)
         self.top_window.set_button.grid(row=row,column=4)
         
-        self.writeListToFile(self.scratch_file) # has to be placed here ...
+        # has to be placed here ...
+        # Reason: It seems that data isn't updated properly across windows
+        self.writeListToFile(self.scratch_file) 
         
     def setPreferences(self):
         
