@@ -2,7 +2,7 @@
 Simple Python app for Pomodoro Method
 
 ## Version
-1.0
+1.1
 
 ## Requirements
 Python 2.7+ (3.6 tested)
